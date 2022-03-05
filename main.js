@@ -16,8 +16,8 @@ const defaultContent =
 "   <p>CONTENT</p>\n" +
 "</div>\n";
 
-
-function isBlank(string) { //empty / whitespace strings
+//Check for empty / whitespace strings
+function isBlank(string) {
     return (!string || /^\s*$/.test(string));
 }
 
@@ -51,39 +51,46 @@ const requestListener = function (req, res) { //request (incoming) response (out
                     return;
                 }
 
-                //Generated ANSI escape codes from @https://ansi.gabebanks.net/ 
-                var commentObject = JSON.parse(body);
-                if (isBlank(commentObject.name)) { //Check for blank name
-                    commentObject.name = "Anonymous";
-                }
-                if (isBlank(commentObject.email) || !commentObject.email.includes("@")) { //Check for blank or invalid email 
-                    commentObject.email = "anonymous@anonymous.com";
-                }
-                if (isBlank(commentObject.message) || commentObject.message.trim().length <= minMessageCharacters) { //Check for blank message
-                    console.log("\033[90;49;3mEmpty or spam comment detected, rejecting.\033[0m");
-                    return;
-                }
+                //Generated ANSI escape codes from @https://ansi.gabebanks.net/
+                try {
+                    var commentObject = JSON.parse(body);
 
-                commentObject.name = commentObject.name.substring(0, maxNameCharacters);
-                commentObject.email = commentObject.email.substring(0, maxEmailCharacters);
-                commentObject.message = commentObject.message.substring(0, maxMessageCharacters);
-
-                let date = new Date();
-                let bodyHTML = commentObject.message.replaceAll("\n", "<br>");
-                let newComments = defaultContent
-                    .replace("EMAIL", commentObject.email)
-                    .replace("NAME", commentObject.name)
-                    .replace("DATE", `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`)
-                    .replace("CONTENT", bodyHTML) + "\n" + data
-                ;
-
-                fs.writeFile("comments.html", newComments, err => {
-                    if (err) {
-                        console.error(err);
+                    if (isBlank(commentObject.name)) { //Check for blank name
+                        commentObject.name = "Anonymous";
+                    }
+                    if (isBlank(commentObject.email) || !commentObject.email.includes("@")) { //Check for blank or invalid email 
+                        commentObject.email = "anonymous@anonymous.com";
+                    }
+                    if (isBlank(commentObject.message) || commentObject.message.trim().length <= minMessageCharacters) { //Check for blank message
+                        console.log("\033[90;49;3mEmpty or spam comment detected, rejecting.\033[0m");
                         return;
                     }
-                    console.log("\033[90;49;3mSucessfully added comment | " + req.socket.remoteAddress + " | " + commentObject.name + " | " + commentObject.email + " | " +  commentObject.message + "\033[0m");
-                });
+
+                    commentObject.name = commentObject.name.substring(0, maxNameCharacters);
+                    commentObject.email = commentObject.email.substring(0, maxEmailCharacters);
+                    commentObject.message = commentObject.message.substring(0, maxMessageCharacters);
+
+                    let date = new Date();
+                    var bodyHTML = commentObject.message.replaceAll("\n", "<br>");
+                    var newComments = defaultContent
+                        .replace("EMAIL", commentObject.email)
+                        .replace("NAME", commentObject.name)
+                        .replace("DATE", `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`)
+                        .replace("CONTENT", bodyHTML) + "\n" + data
+                    ;
+
+                    fs.writeFile("comments.html", newComments, err => {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+                        console.log("\033[90;49;3mSucessfully added comment | " + req.socket.remoteAddress + " | " + commentObject.name + " | " + commentObject.email + " | " +  commentObject.message + "\033[0m");
+                    });
+                }
+                catch (exception)
+                {
+                    console.error(`Critical failure when posting message:\n${exception}`)
+                }
             });
         });
     }
