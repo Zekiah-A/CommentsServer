@@ -7,6 +7,7 @@ const port = 8000;
 const maxNameCharacters = 16;
 const maxEmailCharacters = 24;
 const maxMessageCharacters = 4096;
+const minMessageCharacters = 2;
 
 const defaultContent =
 "<div class=\"comment\">\n" +
@@ -56,8 +57,8 @@ const requestListener = function (req, res) { //request (incoming) response (out
                 if (isBlank(commentObject.email) || !commentObject.email.includes("@")) { //Check for blank or invalid email 
                     commentObject.email = "anonymous@anonymous.com";
                 }
-                if (isBlank(commentObject.message)) { //Check for blank message
-                    console.log("\033[90;49;3mEmpty comment detected, rejecting.\033[0m");
+                if (isBlank(commentObject.message) || commentObject.message.trim().length <= minMessageCharacters) { //Check for blank message
+                    console.log("\033[90;49;3mEmpty or spam comment detected, rejecting.\033[0m");
                     return;
                 }
 
