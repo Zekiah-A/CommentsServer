@@ -10,7 +10,7 @@ const defaultContent =
 "   <p>CONTENT</p>\n" +
 "</div>\n";
 
-const requestListener = function (req, res) { //request response
+const requestListener = function (req, res) { //request (incoming) response (outgoing)
     res.setHeader("Content-Type", "text/html");
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.writeHead(200);
@@ -39,8 +39,11 @@ const requestListener = function (req, res) { //request response
                     console.error(err);
                     return;
                 }
+                
+                var commentObject = JSON.parse(body);
+                var bodyHTML = commentObject.message.replaceAll("\n", "<br>");
+                var newComments = defaultContent.replace("NAME", commentObject.name).replace("CONTENT", bodyHTML) + "\n" + data;
 
-                var newComments = defaultContent.replace("NAME", "Anonymous").replace("CONTENT", body) + "\n" + data;
                 fs.writeFile("comments.html", newComments, err => {
                     if (err) {
                         console.error(err);
