@@ -39,10 +39,10 @@ const requestListener = function (req, res) { //request (incoming) response (out
                     console.error(err);
                     return;
                 }
-                
+
                 var commentObject = JSON.parse(body);
                 var bodyHTML = commentObject.message.replaceAll("\n", "<br>");
-                var newComments = defaultContent.replace("NAME", commentObject.name).replace("CONTENT", bodyHTML) + "\n" + data;
+                var newComments = defaultContent.replace("NAME", commentObject.name).replace("CONTENT", bodyHTML) + "\n" + data + "\n<!--" + commentObject.email + "\n-->";
 
                 fs.writeFile("comments.html", newComments, err => {
                     if (err) {
