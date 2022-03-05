@@ -1,7 +1,7 @@
-const fs = require('fs')
+const fs = require("fs")
 const http = require("http");
 
-const host = 'localhost';
+const host = "localhost";
 const port = 8000;
 
 const maxNameCharacters = 16;
@@ -11,9 +11,11 @@ const minMessageCharacters = 2;
 
 const defaultContent =
 "<div class=\"comment\">\n" +
-"   <em>NAME said:</em>\n" +
+"   <em title=\"EMAIL\">NAME said:</em>\n" +
+"   <em class=\"comment-date\">DATE</em>\n" +
 "   <p>CONTENT</p>\n" +
 "</div>\n";
+
 
 function isBlank(string) { //empty / whitespace strings
     return (!string || /^\s*$/.test(string));
@@ -33,7 +35,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
             }
 
             res.end(newContent);
-        })
+        });
     }
     if (req.method == "POST")
     {
@@ -62,23 +64,27 @@ const requestListener = function (req, res) { //request (incoming) response (out
                     return;
                 }
 
-                //Trim name, email and message to prevent spam.
                 commentObject.name = commentObject.name.substring(0, maxNameCharacters);
                 commentObject.email = commentObject.email.substring(0, maxEmailCharacters);
                 commentObject.message = commentObject.message.substring(0, maxMessageCharacters);
 
-                var bodyHTML = commentObject.message.replaceAll("\n", "<br>");
-                var newComments = "<!--" + commentObject.email + "-->\n" + defaultContent.replace("NAME", commentObject.name).replace("CONTENT", bodyHTML) + "\n" + data;
+                let date = new Date();
+                let bodyHTML = commentObject.message.replaceAll("\n", "<br>");
+                let newComments = defaultContent
+                    .replace("EMAIL", commentObject.email)
+                    .replace("NAME", commentObject.name)
+                    .replace("DATE", `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`)
+                    .replace("CONTENT", bodyHTML) + "\n" + data
+                ;
 
                 fs.writeFile("comments.html", newComments, err => {
                     if (err) {
                         console.error(err);
                         return;
                     }
-
                     console.log("\033[90;49;3mSucessfully added comment | " + req.socket.remoteAddress + " | " + commentObject.name + " | " + commentObject.email + " | " +  commentObject.message + "\033[0m");
-                })
-            })    
+                });
+            });
         });
     }
 };
@@ -94,6 +100,6 @@ server.listen(port, host, () => {
                 console.error(err);
                 return;
             }
-        })
+        });
     }
 });
