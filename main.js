@@ -1,8 +1,9 @@
 const fs = require("fs")
 const http = require("http");
 
-const host = "localhost";
-const port = 8000;
+var host = "localhost";
+var port = 8000;
+var adminPasscode = "";
 
 const maxNameCharacters = 16;
 const maxEmailCharacters = 24;
@@ -96,17 +97,46 @@ const requestListener = function (req, res) { //request (incoming) response (out
     }
 };
 
-const server = http.createServer(requestListener);
-server.listen(port, host, () => {
-    console.log(`Server is running on http://${host}:${port}`);
-
-    if (!fs.existsSync("comments.html"))
+function startServer()
+{
+    if (!fs.existsSync("comments_server.conf"))
     {
-        fs.writeFile("comments.html", "", err => {
+        const defaultConfig = {host: host, port: port, adminPasscode: adminPasscode};
+
+        fs.writeFile("comments_server.conf", JSON.stringify(defaultConfig, null, 2), err => {
             if (err) {
                 console.error(err);
                 return;
             }
         });
     }
-});
+
+    fs.readFile("comments_server.conf", 'utf8' , (err, config) => {
+        if (err) {
+            console.error(err)
+            return
+        }
+
+        var configObject = JSON.parse(config);
+        host = configObject.host;
+        port = configObject.port;
+        adminPasscode = configObject.adminPasscode;
+
+        const server = http.createServer(requestListener);
+        server.listen(port, host, () => {
+            console.log(`Server is running on http://${host}:${port}`);
+        
+            if (!fs.existsSync("comments.html"))
+            {
+                fs.writeFile("comments.html", "", err => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                });
+            }
+        });    
+    });
+}
+
+startServer();
