@@ -1,5 +1,6 @@
 const fs = require("fs")
 const http = require("http");
+const https = require('https');
 
 var host = "localhost";
 var port = 8000;
@@ -27,8 +28,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.writeHead(200);
 
-    if (req.method == "GET")
-    {
+    if (req.method == "GET") {
         fs.readFile("comments.html", 'utf8' , (err, newContent) => {
             if (err) {
                 console.error(err)
@@ -38,8 +38,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
             res.end(newContent);
         });
     }
-    if (req.method == "POST")
-    {
+    if (req.method == "POST") {
         let body = '';
         req.on('data', chunk => {
             //Convert Buffer to string
@@ -88,8 +87,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
                         console.log("\033[90;49;3mSucessfully added comment | " + req.socket.remoteAddress + " | " + commentObject.name + " | " + commentObject.email + " | " +  commentObject.message + "\033[0m");
                     });
                 }
-                catch (exception)
-                {
+                catch (exception) {
                     console.error(`Critical failure when posting message:\n${exception}`)
                 }
             });
@@ -97,11 +95,9 @@ const requestListener = function (req, res) { //request (incoming) response (out
     }
 };
 
-function startServer()
-{
-    if (!fs.existsSync("comments_server.conf"))
-    {
-        const defaultConfig = {host: host, port: port, adminPasscode: adminPasscode};
+function startServer() {
+    if (!fs.existsSync("comments_server.conf")) {
+        const defaultConfig = {host: host, port: port, adminPasscode: adminPasscode, httpsEnabled: false, certPath: "", keyPath: "" };
 
         fs.writeFile("comments_server.conf", JSON.stringify(defaultConfig, null, 2), err => {
             if (err) {
@@ -121,10 +117,23 @@ function startServer()
         host = configObject.host;
         port = configObject.port;
         adminPasscode = configObject.adminPasscode;
+        httpsEnabled = configObject.httpsEnabled;
+        var server;
 
-        const server = http.createServer(requestListener);
+        if (configObject.httpsEnabled) {
+            const options = {
+                key: fs.readFileSync(configObject.keyPath),
+                cert: fs.readFileSync(configObject.certPath)
+            };
+
+            server = https.createServer(options, requestListener);
+        }
+        else {
+            server = http.createServer(requestListener);
+        }
+
         server.listen(port, host, () => {
-            console.log(`Server is running on http://${host}:${port}`);
+            console.log(`Server is running on http${configObject.httpsEnabled ? "s" : ""}://${host}:${port}`);
         
             if (!fs.existsSync("comments.html"))
             {
