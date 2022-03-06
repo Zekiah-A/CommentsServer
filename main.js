@@ -39,6 +39,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
         });
     }
     if (req.method == "POST") {
+        console.log("post");
         let body = '';
         req.on('data', chunk => {
             //Convert Buffer to string
