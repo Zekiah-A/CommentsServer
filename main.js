@@ -18,6 +18,10 @@ const defaultContent =
 "   <p>CONTENT</p>\n" +
 "</div>\n";
 
+function sanitise(string) {
+    return string.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+}
+
 function urlify(string) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return string.replace(urlRegex, function(url) {
@@ -77,6 +81,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
                     commentObject.email = commentObject.email.substring(0, maxEmailCharacters);
                     commentObject.message = commentObject.message.substring(0, maxMessageCharacters);
                     commentObject.message = urlify(commentObject.message);
+                    commentObject.message = sanitise(commentObject.message);
 
                     let date = new Date();
                     var bodyHTML = commentObject.message.replaceAll("\n", "<br>");
