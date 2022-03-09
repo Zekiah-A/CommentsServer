@@ -25,7 +25,7 @@ function sanitise(string) {
 function urlify(string) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return string.replace(urlRegex, function(url) {
-        if (string.includes(".gif") || string.includes(".png") || string.includes(".jpg")) {
+        if (string.includes(".gif") || string.includes(".png") || string.includes(".jpg") || string.includes(".webp")) {
             return '<img src="' + url + '" width="300px">';
         }
         return '<a href="' + url + '">' + url + '</a>';
