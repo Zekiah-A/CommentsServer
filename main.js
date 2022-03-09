@@ -94,7 +94,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
                     var newComments = defaultContent
                         .replace("EMAIL", commentObject.email)
                         .replace("NAME", commentObject.name)
-                        .replace("DATE", `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`)
+                        .replace("DATE", `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`)
                         .replace("CONTENT", bodyHTML) + "\n" + data
                     ;
 
