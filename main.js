@@ -25,7 +25,10 @@ function sanitise(string) {
 function urlify(string) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return string.replace(urlRegex, function(url) {
-      return '<a href="' + url + '">' + url + '</a>';
+        if (string.includes(".gif") || string.includes(".png") || string.includes(".jpg")) {
+            return '<img src="' + url + '" width="300px">';
+        }
+        return '<a href="' + url + '">' + url + '</a>';
     })
 }
 
@@ -77,11 +80,14 @@ const requestListener = function (req, res) { //request (incoming) response (out
                         return;
                     }
 
+                    //Trim all aspects, to prevent server overload and spam.
                     commentObject.name = commentObject.name.substring(0, maxNameCharacters);
                     commentObject.email = commentObject.email.substring(0, maxEmailCharacters);
                     commentObject.message = commentObject.message.substring(0, maxMessageCharacters);
-                    commentObject.message = urlify(commentObject.message);
+                    
+                    //The order of these operations is important, or else things may go south...
                     commentObject.message = sanitise(commentObject.message);
+                    commentObject.message = urlify(commentObject.message);
 
                     let date = new Date();
                     var bodyHTML = commentObject.message.replaceAll("\n", "<br>");
@@ -101,7 +107,7 @@ const requestListener = function (req, res) { //request (incoming) response (out
                     });
                 }
                 catch (exception) {
-                    console.error(`Critical failure when posting message:\n${exception}`)
+                    console.error(`Critical failure when posting message:\n${exception}, from ${req.socket.remoteAddress}`);
                 }
             });
         });
